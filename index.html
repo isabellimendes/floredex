@@ -237,6 +237,7 @@
             text-align: center;
             margin-top: 8px;
             box-shadow: 0 4px 0 #5c3d1a;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .capture-btn:active {
@@ -520,6 +521,10 @@
         </div>
     </div>
     
+    <!-- INPUT HIDDEN para funcionar no iOS/Android -->
+    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
+    
     <div class="modal" id="captureModal">
         <div class="modal-window">
             <div class="modal-title">🌸 CAPTURAR FLOR</div>
@@ -527,8 +532,8 @@
             <div class="preview-box" id="previewArea">SEM FOTO</div>
             
             <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <button class="modal-btn" onclick="capturePhoto()">📷 CÂMERA</button>
-                <button class="modal-btn" onclick="selectPhoto()">🖼️ GALERIA</button>
+                <button class="modal-btn" id="cameraBtn">📷 CÂMERA</button>
+                <button class="modal-btn" id="galleryBtn">🖼️ GALERIA</button>
             </div>
             
             <hr>
@@ -540,14 +545,14 @@
             <div class="color-options" id="mainColorOptions"></div>
             <div class="color-input-group">
                 <input type="text" id="newMainColor" class="new-color-input" placeholder="NOVA COR...">
-                <button class="add-color-btn" onclick="addNewMainColor()">+</button>
+                <button class="add-color-btn" id="addMainColorBtn">+</button>
             </div>
             
             <label class="form-label">🌈 COR SECUNDÁRIA (TAGS)</label>
             <div class="color-options" id="secondaryColorOptions"></div>
             <div class="color-input-group">
                 <input type="text" id="newSecondaryColor" class="new-color-input" placeholder="NOVA COR...">
-                <button class="add-color-btn" onclick="addNewSecondaryColor()">+</button>
+                <button class="add-color-btn" id="addSecondaryColorBtn">+</button>
             </div>
             
             <label class="form-label">📏 TAMANHO</label>
@@ -559,8 +564,8 @@
             </div>
             
             <div class="modal-buttons">
-                <button class="modal-btn primary" onclick="saveFlower()">💾 SALVAR</button>
-                <button class="modal-btn" onclick="closeModal()">❌ VOLTAR</button>
+                <button class="modal-btn primary" id="saveBtn">💾 SALVAR</button>
+                <button class="modal-btn" id="closeModalBtn">❌ VOLTAR</button>
             </div>
         </div>
     </div>
@@ -570,23 +575,16 @@
             <div class="modal-title">🌸 INFO FLOR</div>
             <div id="detailContent" style="text-align: center;"></div>
             <div class="modal-buttons" style="margin-top: 16px;">
-                <button class="modal-btn" onclick="closeDetail()">FECHAR</button>
+                <button class="modal-btn" id="closeDetailBtn">FECHAR</button>
             </div>
         </div>
     </div>
     
     <script>
-        // CORES PADRÃO
-        let defaultColors = [
-            '🌻 AMARELA', '🌹 VERMELHA', '🩷 ROSA', '🤍 BRANCA', 
-            '💜 ROXA', '💙 AZUL', '🧡 LARANJA', '💚 VERDE'
-        ];
-        
+        let defaultColors = ['🌻 AMARELA', '🌹 VERMELHA', '🩷 ROSA', '🤍 BRANCA', '💜 ROXA', '💙 AZUL', '🧡 LARANJA', '💚 VERDE'];
         let customColors = [];
         let colorsList = [...defaultColors];
-        
         const sizes = ['PEQUENO', 'MÉDIO', 'GRANDE'];
-        
         const XP_PER_FLOWER = 25;
         const XP_PER_FAVORITE_BONUS = 10;
         const XP_BASE_NEXT_LEVEL = 100;
@@ -598,6 +596,10 @@
         let selectedSize = null;
         let currentLevel = 1;
         let currentXP = 0;
+        
+        // Elementos do DOM
+        const fileInput = document.getElementById('fileInput');
+        const cameraInput = document.getElementById('cameraInput');
         
         function loadData() {
             const saved = localStorage.getItem('floredex_belli');
@@ -730,26 +732,15 @@
             
             const galleryDiv = document.getElementById('galleryList');
             if (all.length === 0) {
-                galleryDiv.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">🌿</div>
-                        <div class="empty-text">POKEDEX VAZIA<br>APERTE CAPTURAR<br>PARA COMEÇAR</div>
-                    </div>
-                `;
+                galleryDiv.innerHTML = `<div class="empty-state"><div class="empty-icon">🌿</div><div class="empty-text">POKEDEX VAZIA<br>APERTE CAPTURAR<br>PARA COMEÇAR</div></div>`;
             } else {
                 galleryDiv.innerHTML = all.map((f, i) => `
                     <div class="entry" onclick="showDetail('${f.id}')">
-                        <div class="entry-sprite">
-                            ${f.photo ? `<img src="${f.photo}">` : '🌼'}
-                        </div>
+                        <div class="entry-sprite">${f.photo ? `<img src="${f.photo}">` : '🌼'}</div>
                         <div class="entry-data">
                             <div class="entry-number">#${String(i+1).padStart(3,'0')}</div>
                             <div class="entry-name">${f.name} ${f.fav ? '<span>★</span>' : ''}</div>
-                            <div>
-                                <span class="entry-badge">${f.mainColor}</span>
-                                ${f.secondaryColor ? `<span class="entry-badge">${f.secondaryColor}</span>` : ''}
-                                <span class="entry-badge">${f.size}</span>
-                            </div>
+                            <div><span class="entry-badge">${f.mainColor}</span>${f.secondaryColor ? `<span class="entry-badge">${f.secondaryColor}</span>` : ''}<span class="entry-badge">${f.size}</span></div>
                         </div>
                         <div onclick="event.stopPropagation(); toggleFav('${f.id}')" style="font-size:14px; padding:5px; color:#f5d742;">${f.fav ? '★' : '☆'}</div>
                     </div>
@@ -758,18 +749,11 @@
             
             const favDiv = document.getElementById('favList');
             if (favs.length === 0) {
-                favDiv.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">⭐</div>
-                        <div class="empty-text">SEM FAVORITAS<br>MARQUE COM ★</div>
-                    </div>
-                `;
+                favDiv.innerHTML = `<div class="empty-state"><div class="empty-icon">⭐</div><div class="empty-text">SEM FAVORITAS<br>MARQUE COM ★</div></div>`;
             } else {
                 favDiv.innerHTML = favs.map((f, i) => `
                     <div class="entry" onclick="showDetail('${f.id}')">
-                        <div class="entry-sprite">
-                            ${f.photo ? `<img src="${f.photo}">` : '⭐'}
-                        </div>
+                        <div class="entry-sprite">${f.photo ? `<img src="${f.photo}">` : '⭐'}</div>
                         <div class="entry-data">
                             <div class="entry-number">FAV #${String(i+1).padStart(2,'0')}</div>
                             <div class="entry-name">${f.name} ★</div>
@@ -787,9 +771,7 @@
                 const wasFav = f.fav;
                 f.fav = !f.fav;
                 saveData();
-                if (!wasFav && f.fav) {
-                    addXP(XP_PER_FAVORITE_BONUS);
-                }
+                if (!wasFav && f.fav) addXP(XP_PER_FAVORITE_BONUS);
             }
         }
         
@@ -803,22 +785,14 @@
             }
             
             let similar = [];
-            if (mainColor) {
-                similar = flowers.filter(f => f.mainColor === mainColor);
-            }
+            if (mainColor) similar = flowers.filter(f => f.mainColor === mainColor);
             if (name && name.length > 2) {
-                flowers.forEach(f => {
-                    if (f.name.toLowerCase().includes(name) && !similar.includes(f)) similar.push(f);
-                });
+                flowers.forEach(f => { if (f.name.toLowerCase().includes(name) && !similar.includes(f)) similar.push(f); });
             }
             
             if (similar.length > 0) {
-                const dupDiv = document.getElementById('dupWarning');
-                const listDiv = document.getElementById('dupList');
-                listDiv.innerHTML = similar.slice(0, 2).map(f => `
-                    <div style="font-size:6px; margin:4px 0;">${f.name} (${f.mainColor})</div>
-                `).join('');
-                dupDiv.style.display = 'block';
+                document.getElementById('dupWarning').style.display = 'block';
+                document.getElementById('dupList').innerHTML = similar.slice(0, 2).map(f => `<div style="font-size:6px; margin:4px 0;">${f.name} (${f.mainColor})</div>`).join('');
             } else {
                 document.getElementById('dupWarning').style.display = 'none';
             }
@@ -828,43 +802,45 @@
             const mainContainer = document.getElementById('mainColorOptions');
             const secondaryContainer = document.getElementById('secondaryColorOptions');
             
-            mainContainer.innerHTML = colorsList.map(color => `
-                <div class="color-option ${selectedMainColor === color ? 'selected' : ''}" onclick="selectMainColor('${color.replace(/'/g, "\\'")}')">
-                    ${color}
-                </div>
-            `).join('');
-            
-            secondaryContainer.innerHTML = '<div class="color-option" onclick="selectSecondaryColor(null)">🚫 NENHUMA</div>' + 
-                colorsList.map(color => `
-                    <div class="color-option ${selectedSecondaryColor === color ? 'selected' : ''}" onclick="selectSecondaryColor('${color.replace(/'/g, "\\'")}')">
-                        ${color}
-                    </div>
-                `).join('');
+            mainContainer.innerHTML = colorsList.map(color => `<div class="color-option ${selectedMainColor === color ? 'selected' : ''}" onclick="selectMainColor('${color.replace(/'/g, "\\'")}')">${color}</div>`).join('');
+            secondaryContainer.innerHTML = '<div class="color-option" onclick="selectSecondaryColor(null)">🚫 NENHUMA</div>' + colorsList.map(color => `<div class="color-option ${selectedSecondaryColor === color ? 'selected' : ''}" onclick="selectSecondaryColor('${color.replace(/'/g, "\\'")}')">${color}</div>`).join('');
         }
         
         function renderSizeOptions() {
             const container = document.getElementById('sizeOptions');
-            container.innerHTML = sizes.map(size => `
-                <div class="size-option ${selectedSize === size ? 'selected' : ''}" onclick="selectSize('${size}')">
-                    ${size}
-                </div>
-            `).join('');
+            container.innerHTML = sizes.map(size => `<div class="size-option ${selectedSize === size ? 'selected' : ''}" onclick="selectSize('${size}')">${size}</div>`).join('');
         }
         
-        function selectMainColor(color) {
-            selectedMainColor = color;
-            renderColorOptions();
-            checkDuplicate();
+        function selectMainColor(color) { selectedMainColor = color; renderColorOptions(); checkDuplicate(); }
+        function selectSecondaryColor(color) { selectedSecondaryColor = color; renderColorOptions(); }
+        function selectSize(size) { selectedSize = size; renderSizeOptions(); }
+        
+        // FUNÇÕES DE CÂMERA CORRIGIDAS
+        function openCamera() {
+            cameraInput.value = '';
+            cameraInput.click();
         }
         
-        function selectSecondaryColor(color) {
-            selectedSecondaryColor = color;
-            renderColorOptions();
+        function openGallery() {
+            fileInput.value = '';
+            fileInput.click();
         }
         
-        function selectSize(size) {
-            selectedSize = size;
-            renderSizeOptions();
+        function handleImageFile(file) {
+            if (!file) return;
+            
+            if (!file.type.match('image.*')) {
+                alert("📸 POR FAVOR, SELECIONE UMA IMAGEM!");
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                currentPhoto = ev.target.result;
+                const previewArea = document.getElementById('previewArea');
+                previewArea.innerHTML = `<img src="${currentPhoto}" style="max-width:100%; max-height:100px;">`;
+            };
+            reader.readAsDataURL(file);
         }
         
         function saveFlower() {
@@ -899,59 +875,17 @@
             document.getElementById('flowerName').value = '';
             document.getElementById('previewArea').innerHTML = 'SEM FOTO';
             document.getElementById('dupWarning').style.display = 'none';
-            document.getElementById('newMainColor').value = '';
-            document.getElementById('newSecondaryColor').value = '';
             renderColorOptions();
             renderSizeOptions();
             
             alert(`🌻 ${name.toUpperCase()} FOI ADICIONADA À FLORÉDEX!\n+${XP_PER_FLOWER} XP!`);
         }
         
-        function capturePhoto() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.capture = 'environment';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        currentPhoto = ev.target.result;
-                        document.getElementById('previewArea').innerHTML = `<img src="${currentPhoto}">`;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-            input.click();
-        }
-        
-        function selectPhoto() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        currentPhoto = ev.target.result;
-                        document.getElementById('previewArea').innerHTML = `<img src="${currentPhoto}">`;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-            input.click();
-        }
-        
         function showDetail(id) {
             const f = flowers.find(f => f.id === id);
             if (f) {
-                const content = document.getElementById('detailContent');
-                content.innerHTML = `
-                    <div class="preview-box" style="padding:10px;">
-                        ${f.photo ? `<img src="${f.photo}" style="max-width:100%; max-height:120px;">` : '🌼'}
-                    </div>
+                document.getElementById('detailContent').innerHTML = `
+                    <div class="preview-box" style="padding:10px;">${f.photo ? `<img src="${f.photo}" style="max-width:100%; max-height:120px;">` : '🌼'}</div>
                     <div style="font-size:10px; margin:8px 0; color:#f5d742;">${f.name}</div>
                     <div style="font-size:7px;">🎨 COR: ${f.mainColor}</div>
                     ${f.secondaryColor ? `<div style="font-size:7px;">🌈 DETALHE: ${f.secondaryColor}</div>` : ''}
@@ -973,13 +907,12 @@
                 sizesCount[f.size] = (sizesCount[f.size] || 0) + 1;
             });
             
-            let statsText = `📊 ESTATÍSTICAS\n\n`;
-            statsText += `🌸 TOTAL: ${total}\n`;
-            statsText += `⭐ FAVORITAS: ${favs}\n`;
-            statsText += `🏆 NÍVEL: ${currentLevel}\n`;
-            statsText += `✨ XP: ${currentXP}/${getXPNeededForLevel(currentLevel)}\n\n`;
-            statsText += `🎨 CORES:\n`;
-            for (let [c, q] of Object.entries(colorsCount)) {
-                statsText += `  ${c}: ${q}\n`;
-            }
-            statsText += `\n📏 TAMANHOS
+            let statsText = `📊 ESTATÍSTICAS\n\n🌸 TOTAL: ${total}\n⭐ FAVORITAS: ${favs}\n🏆 NÍVEL: ${currentLevel}\n✨ XP: ${currentXP}/${getXPNeededForLevel(currentLevel)}\n\n🎨 CORES:\n`;
+            for (let [c, q] of Object.entries(colorsCount)) statsText += `  ${c}: ${q}\n`;
+            statsText += `\n📏 TAMANHOS:\n  PEQUENO: ${sizesCount.PEQUENO}\n  MÉDIO: ${sizesCount.MÉDIO}\n  GRANDE: ${sizesCount.GRANDE}`;
+            alert(statsText);
+        }
+        
+        function switchTab(tab) {
+            document.getElementById('galleryPanel').style.display = tab === 'gallery' ? 'block' : 'none';
+            document.getElementById('localPanel').style.display = tab === 'local' ? 'block' : '
