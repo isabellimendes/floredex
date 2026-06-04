@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>FlorDex - Belli</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #3b2a1f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Press Start 2P', monospace;
+            padding: 16px;
+        }
+        
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background: #5c3d1a;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 8px 0 #2a1f15;
+        }
+        
+        .screen {
+            background: #faf3e0;
+            border-radius: 12px;
+            padding: 16px;
+            border: 4px solid #f5d742;
+            min-height: 520px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .title {
+            font-size: 12px;
+            color: #f5d742;
+            text-shadow: 2px 2px 0 #3b2a1f;
+        }
+        
+        .led {
+            width: 8px;
+            height: 8px;
+            background: #f5d742;
+            border-radius: 50%;
+            animation: pisca 1s infinite;
+        }
+        
+        @keyframes pisca {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .level-box {
+            background: #3b2a1f;
+            padding: 10px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .level-text {
+            font-size: 8px;
+            color: #f5d742;
+        }
+        
+        .level-num {
+            font-size: 16px;
+            color: #f5d742;
+            margin: 5px 0;
+        }
+        
+        .xp-bar {
+            background: #2a1f15;
+            height: 10px;
+            border-radius: 5px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        
+        .xp-fill {
+            background: #f5d742;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 7px;
+            color: #3b2a1f;
+        }
+        
+        .menu {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .menu button {
+            flex: 1;
+            background: #3b2a1f;
+            border: none;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 8px;
+            font-weight: bold;
+            color: #f5d742;
+            cursor: pointer;
+        }
+        
+        .menu button.active {
+            background: #f5d742;
+            color: #3b2a1f;
+        }
+        
+        .lista {
+            max-height: 280px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+        
+        .card {
+            background: #3b2a1f;
+            border: 2px solid #f5d742;
+            padding: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .card-imagem {
+            width: 50px;
+            height: 50px;
+            background: #2a1f15;
+            border: 1px solid #f5d742;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            overflow: hidden;
+        }
+        
+        .card-imagem img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-info {
+            flex: 1;
+        }
+        
+        .card-nome {
+            font-size: 8px;
+            color: #faf3e0;
+            margin-bottom: 4px;
+        }
+        
+        .card-detalhes {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            background: #2a1f15;
+            padding: 2px 6px;
+            font-size: 5px;
+            color: #f5d742;
+        }
+        
+        .fav-star {
+            font-size: 16px;
+            padding: 0 8px;
+            cursor: pointer;
+        }
+        
+        .btn-capturar {
+            width: 100%;
+            background: #f5d742;
+            border: none;
+            padding: 14px;
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: bold;
+            color: #3b2a1f;
+            cursor: pointer;
+            margin-top: 8px;
+            box-shadow: 0 4px 0 #5c3d1a;
+        }
+        
+        .btn-capturar:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #5c3d1a;
+        }
+        
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal.aberto {
+            display: flex;
+        }
+        
+        .modal-conteudo {
+            background: #5c3d1a;
+            border: 4px solid #f5d742;
+            max-width: 350px;
+            width: 100%;
+            padding: 20px;
+            max-height: 90%;
+            overflow-y: auto;
+        }
+        
+        .modal-titulo {
+            background: #3b2a1f;
+            color: #f5d742;
+            padding: 8px;
+            text-align: center;
+            font-size: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .preview {
+            background: #2a1f15;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 12px;
+            border: 1px solid #f5d742;
+            min-height: 120px;
+            color: #f5d742;
+        }
+        
+        .preview img {
+            max-width: 100%;
+            max-height: 100px;
+        }
+        
+        input, select {
+            width: 100%;
+            background: #3b2a1f;
+            border: 2px solid #f5d742;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 10px;
+            color: #f5d742;
+            margin-bottom: 12px;
+        }
+        
+        .opcoes-cores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0;
+        }
+        
+        .opcao-cor {
+            background: #3b2a1f;
+            border: 1px solid #f5d742;
+            padding: 6px 10px;
+            font-size: 8px;
+            color: #f5d742;
+            cursor: pointer;
+        }
+        
+        .opcao-cor.selecionada {
+            background: #f5d742;
+            color: #3b2a1f;
+        }
+        
+        .opcoes-tamanho {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .opcao-tamanho {
+            flex: 1;
+            background: #3b2a1f;
+            border: 1px solid #f5d742;
+            padding: 8px;
+            font-size: 8px;
+            color: #f5d742;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .opcao-tamanho.selecionada {
+            background: #f5d742;
+            color: #3b2a1f;
+        }
+        
+        .botoes-modal {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        
+        .botao-modal {
+            flex: 1;
+            background: #3b2a1f;
+            border: none;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 8px;
+            color: #f5d742;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .botao-modal.primario {
+            background: #f5d742;
+            color: #3b2a1f;
+        }
+        
+        .alerta {
+            background: #2a1f15;
+            padding: 8px;
+            margin: 10px 0;
+            font-size: 7px;
+            color: #f5d742;
+            text-align: center;
+        }
+        
+        .vazio {
+            text-align: center;
+            padding: 40px;
+            color: #8b691b;
+            font-size: 8px;
+        }
+        
+        hr {
+            border-color: #f5d742;
+            margin: 12px 0;
+        }
+        
+        .grupo-cor {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .input-nova-cor {
+            flex: 1;
+            background: #3b2a1f;
+            border: 1px solid #f5d742;
+            padding: 6px;
+            font-size: 7px;
+            color: #f5d742;
+        }
+        
+        .btn-add-cor {
+            background: #f5d742;
+            color: #3b2a1f;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 8px;
+        }
+        
+        .mensagem-nivel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #f5d742;
+            border: 4px solid #3b2a1f;
+            padding: 20px;
+            text-align: center;
+            z-index: 2000;
+            font-size: 10px;
+            color: #3b2a1f;
+            max-width: 280px;
+            animation: some 3s forwards;
+        }
+        
+        @keyframes some {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="screen">
+            <div class="header">
+                <span class="title">🌻 FLOREDEX</span>
+                <div class="led"></div>
+            </div>
+            
+            <div class="level-box">
+                <div class="level-text">JARDINEIRA NÍVEL</div>
+                <div class="level-num" id="nivelValor">1</div>
+                <div class="xp-bar">
+                    <div class="xp-fill" id="xpBarra"></div>
+                </div>
+                <div class="level-text" id="xpTexto">0 / 100 XP</div>
+            </div>
+            
+            <div class="stats">
+                <span>🌸 <span id="totalFlores">0</span></span>
+                <span>⭐ <span id="totalFav">0</span></span>
+            </div>
+            
+            <div class="menu">
+                <button id="btnPokedex">📖 POKEDEX</button>
+                <button id="btnFavoritas">⭐ FAVORITAS</button>
+                <button id="btnStats">📊 DADOS</button>
+            </div>
+            
+            <div id="areaPokedex">
+                <div class="lista" id="listaPokedex"></div>
+            </div>
+            
+            <div id="areaFavoritas" style="display: none;">
+                <div class="lista" id="listaFavoritas"></div>
+            </div>
+            
+            <button class="btn-capturar" id="btnAbrirModal">📷 CAPTURAR</button>
+        </div>
+    </div>
+    
+    <!-- Inputs escondidos -->
+    <input type="file" id="inputCamera" accept="image/*" capture="environment" style="display: none;">
+    <input type="file" id="inputGaleria" accept="image/*" style="display: none;">
+    
+    <!-- MODAL CAPTURA -->
+    <div class="modal" id="modalCaptura">
+        <div class="modal-conteudo">
+            <div class="modal-titulo">🌸 CAPTURAR FLOR</div>
+            
+            <div class="preview" id="previewArea">📸 SEM FOTO</div>
+            
+            <div class="botoes-modal" style="margin-bottom: 12px;">
+                <button class="botao-modal" id="btnCamera">📷 CÂMERA</button>
+                <button class="botao-modal" id="btnGaleria">🖼️ GALERIA</button>
+            </div>
+            
+            <hr>
+            
+            <input type="text" id="inputNome" placeholder="NOME DA FLOR" maxlength="25">
+            
+            <label style="font-size: 8px; color: #f5d742;">🎨 COR PRINCIPAL</label>
+            <div class="opcoes-cores" id="opcoesCorPrincipal"></div>
+            <div class="grupo-cor">
+                <input type="text" id="novaCorPrincipal" class="input-nova-cor" placeholder="NOVA COR...">
+                <button class="btn-add-cor" id="btnAddCorPrincipal">+</button>
+            </div>
+            
+            <label style="font-size: 8px; color: #f5d742;">🌈 COR SECUNDÁRIA</label>
+            <div class="opcoes-cores" id="opcoesCorSecundaria"></div>
+            <div class="grupo-cor">
+                <input type="text" id="novaCorSecundaria" class="input-nova-cor" placeholder="NOVA COR...">
+                <button class="btn-add-cor" id="btnAddCorSecundaria">+</button>
+            </div>
+            
+            <label style="font-size: 8px; color: #f5d742;">📏 TAMANHO</label>
+            <div class="opcoes-tamanho" id="opcoesTamanho"></div>
+            
+            <div id="areaAlerta" style="display: none;" class="alerta">
+                ⚠️ VOCÊ JÁ TEM UMA FLOR PARECIDA!
+                <div id="listaSimilar"></div>
+            </div>
+            
+            <div class="botoes-modal">
+                <button class="botao-modal primario" id="btnSalvar">💾 SALVAR</button>
+                <button class="botao-modal" id="btnFecharModal">❌ VOLTAR</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL DETALHE -->
+    <div class="modal" id="modalDetalhe">
+        <div class="modal-conteudo">
+            <div class="modal-titulo">🌸 INFO FLOR</div>
+            <div id="conteudoDetalhe" style="text-align: center;"></div>
+            <div class="botoes-modal" style="margin-top: 16px;">
+                <button class="botao-modal" id="btnFecharDetalhe">FECHAR</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // CONFIGURAÇÕES
+        const CORES_PADRAO = ['🌻 AMARELA', '🌹 VERMELHA', '🩷 ROSA', '🤍 BRANCA', '💜 ROXA', '💙 AZUL', '🧡 LARANJA', '💚 VERDE'];
+        const TAMANHOS = ['PEQUENO', 'MÉDIO', 'GRANDE'];
+        const XP_POR_FLOR = 25;
+        const XP_POR_FAV = 10;
+        
+        // DADOS
+        let flores = [];
+        let coresPersonalizadas = [];
+        let todasCores = [...CORES_PADRAO];
+        let nivel = 1;
+        let xp = 0;
+        
+        // ESTADO DO MODAL
+        let fotoAtual = null;
+        let corPrincipalSelecionada = null;
+        let corSecundariaSelecionada = null;
+        let tamanhoSelecionado = null;
+        
+        // ========== FUNÇÕES PRINCIPAIS ==========
+        
+        function carregarDados() {
+            const salvo = localStorage.getItem('flordex_belli');
+            if (salvo) {
+                try {
+                    const dados = JSON.parse(salvo);
+                    flores = dados.flores || [];
+                    nivel = dados.nivel || 1;
+                    xp = dados.xp || 0;
+                    coresPersonalizadas = dados.coresPersonalizadas || [];
+                    todasCores = [...CORES_PADRAO, ...coresPersonalizadas];
+                } catch(e) {}
+            }
+            atualizarTudo();
+        }
+        
+        function salvarDados() {
+            const dados = {
+                flores: flores,
+                nivel: nivel,
+                xp: xp,
+                coresPersonalizadas: coresPersonalizadas
+            };
+            localStorage.setItem('flordex_belli', JSON.stringify(dados));
+            atualizarTudo();
+        }
+        
+        function atualizarTudo() {
+            atualizarStats();
+            atualizarNivel();
+            renderizarListas();
+            renderizarCores();
+            renderizarTamanhos();
+        }
+        
+        function atualizarStats() {
+            document.getElementById('totalFlores').innerText = flores.length;
+            document.getElementById('totalFav').innerText = flores.filter(f => f.fav).length;
+        }
+        
+        function atualizarNivel() {
+            const xpNecessario = 100 + (nivel - 1) * 25;
+            const percentual = (xp / xpNecessario) * 100;
+            document.getElementById('nivelValor').innerText = nivel;
+            document.getElementById('xpBarra').style.width = percentual + '%';
+            document.getElementById('xpTexto').innerText = `${xp} / ${xpNecessario} XP`;
+        }
+        
+        function adicionarXP(quantidade) {
+            let novoXP = xp + quantidade;
+            let novoNivel = nivel;
+            let subiu = false;
+            
+            while (novoXP >= (100 + (novoNivel - 1) * 25)) {
+                novoXP -= (100 + (novoNivel - 1) * 25);
+                novoNivel++;
+                subiu = true;
+            }
+            
+            if (subiu) {
+                const mensagens = [
+                    `✨ PARABÉNS, MINHA BELLI! ✨\n\nVOCÊ ALCANÇOU O NÍVEL ${novoNivel}!\nSEU JARDIM ESTÁ CADA VEZ MAIS LINDO! 🌸`,
+                    `🌻 MINHA BELLI QUERIDA! 🌻\n\nVOCÊ SUBIU PARA O NÍVEL ${novoNivel}!\nSUA DEDICAÇÃO FAZ AS FLORES MAIS FELIZES! 💛`,
+                    `⭐ UAU, MINHA BELLI! ⭐\n\nNÍVEL ${novoNivel} ALCANÇADO!\nVOCÊ É UMA JARDINEIRA NOTA 10! 🌟`
+                ];
+                const msg = mensagens[Math.floor(Math.random() * mensagens.length)];
+                const divMsg = document.createElement('div');
+                divMsg.className = 'mensagem-nivel';
+                divMsg.innerHTML = msg.replace(/\n/g, '<br>');
+                document.body.appendChild(divMsg);
+                setTimeout(() => divMsg.remove(), 3000);
+            }
+            
+            xp = novoXP;
+            nivel = novoNivel;
+            atualizarNivel();
+            salvarDados();
+        }
+        
+        function renderizarListas() {
+            const todas = [...flores].reverse();
+            const favoritas = flores.filter(f => f.fav);
+            
+            const containerPokedex = document.getElementById('listaPokedex');
+            if (todas.length === 0) {
+                containerPokedex.innerHTML = '<div class="vazio">🌿 NENHUMA FLOR<br>APERTE CAPTURAR</div>';
+            } else {
+                containerPokedex.innerHTML = todas.map((f, i) => `
+                    <div class="card" data-id="${f.id}">
+                        <div class="card-imagem">${f.foto ? `<img src="${f.foto}">` : '🌼'}</div>
+                        <div class="card-info">
+                            <div class="card-nome">#${i+1} ${f.nome} ${f.fav ? '★' : ''}</div>
+                            <div class="card-detalhes">
+                                <span class="badge">${f.corPrincipal}</span>
+                                ${f.corSecundaria ? `<span class="badge">${f.corSecundaria}</span>` : ''}
+                                <span class="badge">${f.tamanho}</span>
+                            </div>
+                        </div>
+                        <div class="fav-star" data-id="${f.id}">${f.fav ? '★' : '☆'}</div>
+                    </div>
+                `).join('');
+                
+                document.querySelectorAll('#listaPokedex .card').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('fav-star')) {
+                            mostrarDetalhe(el.dataset.id);
+                        }
+                    });
+                });
+                document.querySelectorAll('#listaPokedex .fav-star').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        alternarFavorito(el.dataset.id);
+                    });
+                });
+            }
+            
+            const containerFavoritas = document.getElementById('listaFavoritas');
+            if (favoritas.length === 0) {
+                containerFavoritas.innerHTML = '<div class="vazio">⭐ NENHUMA FAVORITA</div>';
+            } else {
+                containerFavoritas.innerHTML = favoritas.map((f, i) => `
+                    <div class="card" data-id="${f.id}">
+                        <div class="card-imagem">${f.foto ? `<img src="${f.foto}">` : '⭐'}</div>
+                        <div class="card-info">
+                            <div class="card-nome">⭐ ${f.nome}</div>
+                            <div class="card-detalhes">
+                                <span class="badge">${f.corPrincipal}</span>
+                                <span class="badge">${f.tamanho}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.querySelectorAll('#listaFavoritas .card').forEach(el => {
+                    el.addEventListener('click', () => mostrarDetalhe(el.dataset.id));
+                });
+            }
+        }
+        
+        function alternarFavorito(id) {
+            const flor = flores.find(f => f.id === id);
+            if (flor) {
+                const eraFav = flor.fav;
+                flor.fav = !flor.fav;
+                salvarDados();
+                if (!eraFav && flor.fav) {
+                    adicionarXP(XP_POR_FAV);
+                }
+            }
+        }
+        
+        function mostrarDetalhe(id) {
+            const f = flores.find(f => f.id === id);
+            if (f) {
+                const html = `
+                    <div class="preview">${f.foto ? `<img src="${f.foto}">` : '🌼'}</div>
+                    <div style="font-size: 11px; margin: 10px 0; color: #f5d742;">${f.nome}</div>
+                    <div style="font-size: 8px;">🎨 COR: ${f.corPrincipal}</div>
+                    ${f.corSecundaria ? `<div style="font-size: 8px;">🌈 DETALHE: ${f.corSecundaria}</div>` : ''}
+                    <div style="font-size: 8px;">📏 TAMANHO: ${f.tamanho}</div>
+                    <div style="font-size: 7px; margin-top: 8px;">📅 ${new Date(f.data).toLocaleDateString()}</div>
+                `;
+                document.getElementById('conteudoDetalhe').innerHTML = html;
+                document.getElementById('modalDetalhe').classList.add('aberto');
+            }
+        }
+        
+        function mostrarStats() {
+            const total = flores.length;
+            const favs = flores.filter(f => f.fav).length;
+            const contagemCores = {};
+            flores.forEach(f => {
+                contagemCores[f.corPrincipal] = (contagemCores[f.corPrincipal] || 0) + 1;
+            });
+            let msg = `📊 ESTATÍSTICAS\n\n🌸 TOTAL: ${total}\n⭐ FAVORITAS: ${favs}\n🏆 NÍVEL: ${nivel}\n✨ XP: ${xp}\n\n🎨 CORES:\n`;
+            for (let [cor, qtd] of Object.entries(contagemCores)) {
+                msg += `${cor}: ${qtd}\n`;
+            }
+            alert(msg);
+        }
+        
+        // ========== FUNÇÕES DE CORES ==========
+        
+        function renderizarCores() {
+            const containerPrincipal = document.getElementById('opcoesCorPrincipal');
+            const containerSecundaria = document.getElementById('opcoesCorSecundaria');
+            
+            containerPrincipal.innerHTML = todasCores.map(cor => `
+                <div class="opcao-cor ${corPrincipalSelecionada === cor ? 'selecionada' : ''}" data-cor="${cor}">${cor}</div>
+            `).join('');
+            
+            containerSecundaria.innerHTML = '<div class="opcao-cor" data-cor="null">🚫 NENHUMA</div>' + 
+                todasCores.map(cor => `
+                    <div class="opcao-cor ${corSecundariaSelecionada === cor ? 'selecionada' : ''}" data-cor="${cor}">${cor}</div>
+                `).join('');
+            
+            document.querySelectorAll('#opcoesCorPrincipal .opcao-cor').forEach(el => {
+                el.addEventListener('click', () => {
+                    corPrincipalSelecionada = el.dataset.cor;
+                    renderizarCores();
+                    verificarDuplicata();
+                });
+            });
+            
+            document.querySelectorAll('#opcoesCorSecundaria .opcao-cor').forEach(el => {
+                el.addEventListener('click', () => {
+                    corSecundariaSelecionada = el.dataset.cor === 'null' ? null : el.dataset.cor;
+                    renderizarCores();
+                });
+            });
+        }
+        
+        function renderizarTamanhos() {
+            const container = document.getElementById('opcoesTamanho');
+            container.innerHTML = TAMANHOS.map(tam => `
+                <div class="opcao-tamanho ${tamanhoSelecionado === tam ? 'selecionada' : ''}" data-tamanho="${tam}">${tam}</div>
+            `).join('');
+            
+            document.querySelectorAll('#opcoesTamanho .opcao-tamanho').forEach(el => {
+                el.addEventListener('click', () => {
+                    tamanhoSelecionado = el.dataset.tamanho;
+                    renderizarTamanhos();
+                });
+            });
+        }
+        
+        function adicionarNovaCorPrincipal() {
+            const input = document.getElementById('novaCorPrincipal');
+            const novaCor = input.value.trim().toUpperCase();
+            if (novaCor && !todasCores.includes(novaCor)) {
+                coresPersonalizadas.push(novaCor);
+                todasCores = [...CORES_PADRAO, ...coresPersonalizadas];
+                salvarDados();
+                renderizarCores();
+                input.value = '';
+            } else if (novaCor) {
+                alert("⚠️ ESTA COR JÁ EXISTE!");
+            }
+        }
+        
+        function adicionarNovaCorSecundaria() {
+            const input = document.getElementById('novaCorSecundaria');
+            const novaCor = input.value.trim().toUpperCase();
+            if (novaCor && !todasCores.includes(novaCor)) {
+                coresPersonalizadas.push(novaCor);
+                todasCores = [...CORES_PADRAO, ...coresPersonalizadas];
+                salvarDados();
+                renderizarCores();
+                input.value = '';
+            } else if (novaCor) {
+                alert("⚠️ ESTA COR JÁ EXISTE!");
+            }
+        }
+        
+        function verificarDuplicata() {
+            const nome = document.getElementById('inputNome').value.trim().toLowerCase();
+            const cor = corPrincipalSelecionada;
+            
+            if (!cor && !nome) {
+                document.getElementById('areaAlerta').style.display = 'none';
+                return;
+            }
+            
+            let similares = [];
+            if (cor) {
+                similares = flores.filter(f => f.corPrincipal === cor);
+            }
+            if (nome && nome.length > 2) {
+                flores.forEach(f => {
+                    if (f.nome.toLowerCase().includes(nome) && !similares.includes(f)) {
+                        similares.push(f);
+                    }
+                });
+            }
+            
+            if (similares.length > 0) {
+                document.getElementById('areaAlerta').style.display = 'block';
+                document.getElementById('listaSimilar').innerHTML = similares.slice(0, 2).map(f => `<div>${f.nome} (${f.corPrincipal})</div>`).join('');
+            } else {
+                document.getElementById('areaAlerta').style.display = 'none';
+            }
+        }
+        
+        // ========== FUNÇÕES DE FOTO ==========
+        
+        function abrirCamera() {
+            const input = document.getElementById('inputCamera');
+            input.value = '';
+            input.click();
+        }
+        
+        function abrirGaleria() {
+            const input = document.getElementById('inputGaleria');
+            input.value = '';
+            input.click();
+        }
+        
+        function processarFoto(file) {
+            if (!file || !file.type.match('image.*')) {
+                alert("📸 SELECIONE UMA IMAGEM!");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                fotoAtual = e.target.result;
+                document.getElementById('previewArea').innerHTML = `<img src="${fotoAtual}">`;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function salvarFlor() {
+            const nome = document.getElementById('inputNome').value.trim();
+            
+            if (!nome) { alert("🌻 DÊ UM NOME PARA A FLOR!"); return; }
+            if (!corPrincipalSelecionada) { alert("🎨 SELECIONE A COR PRINCIPAL!"); return; }
+            if (!tamanhoSelecionado) { alert("📏 SELECIONE O TAMANHO!"); return; }
+            if (!fotoAtual) { alert("📸 TIRE UMA FOTO DA FLOR!"); return; }
+            
+            const novaFlor = {
+                id: Date.now().toString(),
+                nome: nome.toUpperCase(),
+                corPrincipal: corPrincipalSelecionada,
+                corSecundaria: corSecundariaSelecionada,
+                tamanho: tamanhoSelecionado,
+                foto: fotoAtual,
+                data: new Date().toISOString(),
+                fav: false
+            };
+            
+            flores.push(novaFlor);
+            adicionarXP(XP_POR_FLOR);
+            salvarDados();
+            fecharModal();
+            
+            fotoAtual = null;
+            corPrincipalSelecionada = null;
+            corSecundariaSelecionada = null;
+            tamanhoSelecionado = null;
+            document.getElementById('inputNome').value = '';
+            document.getElementById('previewArea').innerHTML = '📸 SEM FOTO';
+            document.getElementById('novaCorPrincipal').value = '';
+            document.getElementById('novaCorSecundaria').value = '';
+            renderizarCores();
+            renderizarTamanhos();
+            
+            alert(`🌻 ${nome.toUpperCase()} ADICIONADA! +${XP_POR_FLOR} XP`);
+        }
+        
+        // ========== CONTROLE DE TELAS ==========
+        
+        function alternarAba(aba) {
+            if (aba === 'pokedex') {
+                document.getElementById('areaPokedex').style.display = 'block';
+                document.getElementById('areaFavoritas').style.display = 'none';
+                document.getElementById('btnPokedex').classList.add('active');
+                document.getElementById('btnFavoritas').classList.remove('active');
+            } else {
+                document.getElementById('areaPokedex').style.display = 'none';
+                document.getElementById('areaFavoritas').style.display = 'block';
+                document.getElementById('btnPokedex').classList.remove('active');
+                document.getElementById('btnFavoritas').classList.add('active');
+            }
+        }
+        
+        function abrirModal() {
+            document.getElementById('modalCaptura').classList.add('aberto');
+        }
+        
+        function fecharModal() {
+            document.getElementById('modalCaptura').classList.remove('aberto');
+        }
+        
+        function fecharDetalhe() {
+            document.getElementById('modalDetalhe').classList.remove('aberto');
+        }
+        
+        // ========== INICIALIZAÇÃO ==========
+        
+        document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
+        document.getElementById('btnCamera').addEventListener('click', abrirCamera);
+        document.getElementById('btnGaleria').addEventListener('click', abrirGaleria);
+        document.getElementById('btnSalvar').addEventListener('click', salvarFlor);
+        document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
+        document.getElementById('btnFecharDetalhe').addEventListener('click', fecharDetalhe);
+        document.getElementById('btnPokedex').addEventListener('click', () => alternarAba('pokedex'));
+        document.getElementById('btnFavoritas').addEventListener('click', () => alternarAba('favoritas'));
+        document.getElementById('btnStats').addEventListener('click', mostrarStats);
+        document.getElementById('btnAddCorPrincipal').addEventListener('click', adicionarNovaCorPrincipal);
+        document.getElementById('btnAddCorSecundaria').addEventListener('click', adicionarNovaCorSecundaria);
+        
+        document.getElementById('inputCamera').addEventListener('change', (e) => {
+            if (e.target.files[0]) processarFoto(e.target.files[0]);
+        });
+        document.getElementById('inputGaleria').addEventListener('change', (e) => {
+            if (e.target.files[0]) processarFoto(e.target.files[0]);
+        });
+        document.getElementById('inputNome').addEventListener('input', verificarDuplicata);
+        
+        carregarDados();
+    </script>
+</body>
+</html>
